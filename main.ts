@@ -1,7 +1,7 @@
 // Часть 1 - перевести аккумулятор
 function TransferBattery () {
     chassis.rampLinearDistMove(40, 70, 150, 60, 100)
-    Claw(false, 60, false)
+    Claw(false, 50, false)
     pause(50)
     chassis.linearDistMove(70, -60, Braking.Hold)
     chassis.spinTurn(90, 70)
@@ -36,7 +36,7 @@ function MoveTwoRedSpaceGarbage () {
     pause(50)
     Claw(true, 60, true)
     chassis.rampLinearDistMove(40, 80, 150, 40, 70)
-    Claw(false, 60, false)
+    Claw(false, 50, false)
     pause(50)
     chassis.linearDistMove(150, -60, Braking.Hold)
     pause(100)
@@ -55,15 +55,19 @@ function MoveTwoRedSpaceGarbage () {
         Claw(true, 50, true)
     })
     if (false) {
-        motions.lineFollowToDistance(1240, AfterMotion.NoStop, params.lineFollowTwoParams(70, 0.5))
-    } else {
         motions.rampLineFollowToDistance(1240, 100, 0, Braking.NoStop, params.rampLineFollowSixParams(30, 70, 30, 0.5, 0.5))
         chassis.rampLinearDistMove(30, 70, 120, 0, 100)
+    } else {
+        motions.rampLineFollowToDistance(100, 100, 0, Braking.NoStop, params.rampLineFollowSixParams(30, 70, 70, 0.5, 0.5))
+        motions.lineFollowToCrossIntersection(AfterMotion.NoStop, params.lineFollowFourParams(70, 0.5, 0.5))
+        chassis.rampLinearDistMove(30, 70, 110, 0, 100)
     }
-    pause(50)
-    chassis.linearDistMove(60, -60, Braking.Hold)
+    pause(100)
+    motions.moveToRefZone(0, -50, LineSensorSelection.LeftOrRight, Comparison.LessOrEqual, 40, AfterMotion.BreakStop)
+    chassis.linearDistMove(40, 60, Braking.Hold)
     pause(50)
     chassis.spinTurn(180, 60)
+    pause(50)
 }
 function CheckColor (debug: boolean) {
     rgb = sensors.getNormalizeRgb(sensors.color3)
@@ -84,7 +88,7 @@ function CheckColor (debug: boolean) {
 }
 // Часть 3 - перевести первый спутник
 function MoveSatellite () {
-    motions.rampLineFollowToDistance(120, 60, 40, Braking.Hold, params.rampLineFollowThreeParams(30, 60, 30))
+    motions.rampLineFollowToDistance(100, 60, 40, Braking.Hold, params.rampLineFollowThreeParams(30, 60, 30))
     pause(50)
     chassis.spinTurn(90, 60)
     levelings.lineAlignment(VerticalLineLocation.Behind, 750, false, params.lineAlignmentSevenParams(50, 1.1, 1.1, 0, 0))
@@ -94,7 +98,7 @@ function MoveSatellite () {
     chassis.linearDistMove(70, 50, Braking.Hold)
     for (let index = 0; index <= 4; index++) {
         setellite_zone = index + 1
-        Claw(false, 75, false)
+        Claw(false, 60, false)
         current_color = CheckSetelliteColor()
         if (current_color != ColorSensorColor.None) {
             sattelites[setellite_zone] = current_color
@@ -111,7 +115,7 @@ function MoveSatellite () {
     pause(50)
     chassis.linearDistMove(20, -60, Braking.Hold)
     chassis.spinTurn(-90, 80)
-    motions.moveToRefZone(0, 50, LineSensorSelection.LeftOrRight, Comparison.Less, 20, AfterMotion.BreakStop)
+    motions.moveToRefZone(0, 50, LineSensorSelection.LeftAndRight, Comparison.Less, 20, AfterMotion.BreakStop)
     levelings.lineAlignment(VerticalLineLocation.Behind, 750, false, params.lineAlignmentSevenParams(50, 1.1, 1.1, 0, 0, 0, 0))
     chassis.linearDistMove(30, 50, Braking.Hold)
     pause(50)
@@ -141,8 +145,8 @@ function MoveSatellite () {
     if (false) {
         motions.lineFollowToDistance(40, AfterMotion.NoStop, params.lineFollowTwoParams(30, 0.6))
     }
-    for (let index = 0; index <= cross; index++) {
-        if (index != cross) {
+    for (let index2 = 0; index2 <= cross; index2++) {
+        if (index2 != cross) {
             motions.lineFollowToSideIntersection(SideIntersection.RightInside, AfterMotion.RollingNoStop, params.lineFollowTwoParams(45, 0.7))
         } else {
             motions.lineFollowToSideIntersection(SideIntersection.RightInside, AfterMotion.DecelRolling, params.lineFollowTwoParams(45, 0.7))
@@ -210,8 +214,8 @@ function VoiceSatelliteColor (color: number) {
 // Часть 4 - отвезти последний красный кубик0
 function MoveLastRedSpaceGarbage () {
     chassis.spinTurn(-90, 70)
-    for (let index = 0; index <= 4 - cross - 1; index++) {
-        if (index == 4) {
+    for (let index3 = 0; index3 <= 4 - cross - 1; index3++) {
+        if (index3 == 4) {
             motions.lineFollowToSideIntersection(SideIntersection.RightInside, AfterMotion.BreakStop, params.lineFollowFourParams(50, 0.7, 0))
         } else {
             motions.lineFollowToSideIntersection(SideIntersection.RightInside, AfterMotion.RollingNoStop, params.lineFollowFourParams(50, 0.7, 0))
