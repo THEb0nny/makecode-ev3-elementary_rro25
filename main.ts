@@ -4,12 +4,9 @@ function TransferBattery () {
     Claw(false, 50, false)
     pause(50)
     chassis.linearDistMove(70, -60, Braking.Hold)
+    pause(50)
     chassis.spinTurn(90, 70)
-    control.runInParallel(function () {
-        pause(3000)
-        music.playSoundEffect(sounds.informationUp)
-        Claw(true, 50, true)
-    })
+    RaiseClawAfterDelayInParallel(3000)
     chassis.rampLinearDistMove(30, 60, 120, 60, 40)
     motions.rampLineFollowToDistance(1670, 100, 0, Braking.NoStop, params.rampLineFollowSixParams(30, 70, 70, 0.6, 0.8))
     chassis.rampLinearDistMove(30, 70, 100, 0, 70)
@@ -49,25 +46,23 @@ function MoveTwoRedSpaceGarbage () {
     chassis.linearDistMove(30, 60, Braking.Hold)
     pause(50)
     chassis.spinTurn(90, 60)
-    control.runInParallel(function () {
-        pause(2500)
-        music.playSoundEffect(sounds.informationUp)
-        Claw(true, 50, true)
-    })
-    if (false) {
-        motions.rampLineFollowToDistance(1240, 100, 0, Braking.NoStop, params.rampLineFollowSixParams(30, 70, 30, 0.5, 0.5))
-        chassis.rampLinearDistMove(30, 70, 120, 0, 100)
-    } else {
-        motions.rampLineFollowToDistance(100, 100, 0, Braking.NoStop, params.rampLineFollowSixParams(30, 70, 70, 0.5, 0.5))
-        motions.lineFollowToCrossIntersection(AfterMotion.NoStop, params.lineFollowFourParams(70, 0.5, 0.5))
-        chassis.rampLinearDistMove(30, 70, 110, 0, 100)
-    }
+    RaiseClawAfterDelayInParallel(2500)
+    motions.rampLineFollowToDistance(100, 100, 0, Braking.NoStop, params.rampLineFollowSixParams(30, 70, 70, 0.5, 0.5))
+    motions.lineFollowToCrossIntersection(AfterMotion.NoStop, params.lineFollowFourParams(70, 0.5, 0.5))
+    chassis.rampLinearDistMove(30, 70, 110, 0, 100)
     pause(100)
     motions.moveToRefZone(0, -50, LineSensorSelection.LeftOrRight, Comparison.LessOrEqual, 40, AfterMotion.BreakStop)
     chassis.linearDistMove(40, 60, Braking.Hold)
     pause(50)
     chassis.spinTurn(180, 60)
-    pause(50)
+}
+// Поднять манипулятор после задержки в параллельной задаче
+function RaiseClawAfterDelayInParallel (delay: number) {
+    control.runInParallel(function () {
+        pause(delay)
+        music.playSoundEffect(sounds.informationUp)
+        Claw(true, 50, true)
+    })
 }
 function CheckColor (debug: boolean) {
     rgb = sensors.getNormalizeRgb(sensors.color3)
@@ -95,6 +90,7 @@ function MoveSatellite () {
     chassis.linearDistMove(110, 60, Braking.Hold)
     pause(50)
     chassis.pivotTurn(90, 70, WheelPivot.LeftWheel)
+    pause(50)
     chassis.linearDistMove(70, 50, Braking.Hold)
     for (let index = 0; index <= 4; index++) {
         setellite_zone = index + 1
@@ -107,12 +103,11 @@ function MoveSatellite () {
         } else {
             music.playSoundEffect(sounds.communicationNo)
             Claw(true, 75, true)
-            pause(100)
             chassis.spinTurn(5, 50)
             chassis.linearDistMove(150, 50, Braking.Hold)
         }
     }
-    pause(50)
+    pause(100)
     chassis.linearDistMove(20, -60, Braking.Hold)
     chassis.spinTurn(-90, 80)
     motions.moveToRefZone(0, 50, LineSensorSelection.LeftAndRight, Comparison.Less, 20, AfterMotion.BreakStop)
@@ -176,7 +171,6 @@ function CheckSetelliteColor () {
         brick.printValue("current_color", current_color, 12)
     })
     ShakeSatellite()
-    pause(500)
     return result_color
 }
 // Вспомогательная функция, с помощью которой робот трясёт спутник, чтобы правильно прочитать значение цвета
@@ -242,13 +236,15 @@ function MoveLastRedSpaceGarbage () {
     pause(50)
     chassis.spinTurn(90, 60)
     pause(50)
-    control.runInParallel(function () {
-        pause(2500)
-        music.playSoundEffect(sounds.informationUp)
-        Claw(true, 60, true)
-    })
-    motions.rampLineFollowToDistance(1240, 150, 100, Braking.NoStop, params.rampLineFollowSixParams(30, 80, 30, 0.6, 0.5))
+    RaiseClawAfterDelayInParallel(2500)
+    motions.rampLineFollowToDistance(100, 100, 0, Braking.NoStop, params.rampLineFollowSixParams(30, 70, 70, 0.5, 0.5))
+    motions.lineFollowToCrossIntersection(AfterMotion.NoStop, params.lineFollowFourParams(70, 0.5, 0.5))
     chassis.rampLinearDistMove(30, 70, 110, 0, 100)
+    pause(100)
+    motions.moveToRefZone(0, -50, LineSensorSelection.LeftOrRight, Comparison.LessOrEqual, 40, AfterMotion.BreakStop)
+    chassis.linearDistMove(40, 60, Braking.Hold)
+    pause(50)
+    chassis.spinTurn(180, 60)
 }
 let result_color = 0
 let color_samples: number[] = []
@@ -269,7 +265,16 @@ sensors.setNxtLightSensorsAsLineSensors(sensors.nxtLight1, sensors.nxtLight4)
 sensors.setLineSensorsRawRefValues(2312, 1632, 2448, 1916)
 sensors.setColorSensorMinRgbValues(sensors.color3, 5, 5, 6)
 sensors.setColorSensorMaxRgbValues(sensors.color3, 206, 227, 224)
-sensors.setHsvlToColorNumParams(sensors.color3, sensors.hsvlToColorNumParams(40, 10, 1, 25, 26, 100, 180, 260))
+sensors.setHsvlToColorNumParams(sensors.color3, sensors.hsvlToColorNumParams(
+40,
+10,
+1,
+25,
+26,
+100,
+180,
+260
+))
 // Расстояние для прокатки после определения перекрёстка
 motions.setDistRollingAfterIntersection(40)
 // Расстояние для съезда с линии после определения перекрёстка
@@ -315,8 +320,7 @@ if (true) {
     pause(100)
     MoveLastRedSpaceGarbage()
 }
-if (true) {
-    chassis.linearDistMove(50, -60, Braking.Hold)
-    chassis.spinTurn(180, 60)
+if (false) {
+    pause(100)
     MoveSatellite()
 }
