@@ -2,16 +2,18 @@
 function TransferBattery () {
     chassis.rampLinearDistMove(40, 70, 150, 60, 100)
     Claw(false, 50, false)
-    pause(50)
+    pause(100)
     chassis.linearDistMove(60, -60, Braking.Hold)
     pause(100)
     chassis.spinTurn(90, 70)
-    pause(100)
+    pause(50)
     RaiseClawAfterDelayInParallel(3000)
     chassis.rampLinearDistMove(30, 60, 120, 60, 40)
-    pause(100)
-    levelings.linePositioning(500, params.linePositioningAllParams(500, 50, 0.6, 0, 0))
-    pause(200)
+    if (true) {
+        pause(50)
+        levelings.linePositioning(500, params.linePositioningAllParams(500, 50, 0.6, 0, 0))
+    }
+    pause(50)
     motions.rampLineFollowToDistance(1670, 150, 0, Braking.NoStop, params.rampLineFollowSixParams(30, 70, 70, 0.6, 0.8))
     chassis.rampLinearDistMove(30, 70, 100, 0, 70)
     chassis.linearDistMove(80, -60, Braking.Hold)
@@ -50,6 +52,7 @@ function MoveTwoRedSpaceGarbage () {
     chassis.linearDistMove(30, 60, Braking.Hold)
     pause(50)
     chassis.spinTurn(90, 60)
+    pause(50)
     RaiseClawAfterDelayInParallel(2500)
     motions.rampLineFollowToDistance(100, 100, 0, Braking.NoStop, params.rampLineFollowSixParams(30, 70, 70, 0.5, 0.5))
     motions.lineFollowToCrossIntersection(AfterMotion.NoStop, params.lineFollowFourParams(70, 0.5, 0.5))
@@ -60,15 +63,7 @@ function MoveTwoRedSpaceGarbage () {
     pause(50)
     chassis.spinTurn(180, 60)
 }
-// Поднять манипулятор после задержки в параллельной задаче
-function RaiseClawAfterDelayInParallel (delay: number) {
-    control.runInParallel(function () {
-        pause(delay)
-        music.playSoundEffect(sounds.informationUp)
-        Claw(true, 50, true)
-    })
-}
-function CheckColor (debug: boolean) {
+function GetColor (debug: boolean) {
     rgb = sensors.getNormalizeRgb(sensors.color3)
     hsvl = sensors.convertRgbToHsvl(rgb)
     color = sensors.convertHsvlToColorNum(hsvl, sensors.getHsvlToColorNumParams(sensors.color3))
@@ -85,12 +80,22 @@ function CheckColor (debug: boolean) {
     }
     return color
 }
+// Поднять манипулятор после задержки в параллельной задаче
+function RaiseClawAfterDelayInParallel (delay: number) {
+    control.runInParallel(function () {
+        pause(delay)
+        music.playSoundEffect(sounds.informationUp)
+        Claw(true, 50, true)
+    })
+}
 // Часть 3 - перевести первый спутник
 function MoveSatellite () {
     motions.rampLineFollowToDistance(100, 60, 40, Braking.Hold, params.rampLineFollowThreeParams(40, 60, 30))
     pause(50)
     chassis.spinTurn(90, 60)
+    pause(10)
     levelings.lineAlignment(VerticalLineLocation.Behind, 750, false, params.lineAlignmentSevenParams(50, 1.1, 1.1, 0, 0))
+    pause(50)
     chassis.linearDistMove(110, 60, Braking.Hold)
     pause(50)
     chassis.pivotTurn(90, 70, WheelPivot.LeftWheel)
@@ -101,7 +106,7 @@ function MoveSatellite () {
         setellite_zone = index + 1
         Claw(false, 20, false)
         current_color = CheckSetelliteColor()
-        brick.printValue("2current_coolor", current_color, 12)
+        brick.printValue("current_color", current_color, 11)
         if (current_color != 0) {
             VoiceSatelliteColor(current_color)
             break;
@@ -109,17 +114,23 @@ function MoveSatellite () {
             music.playSoundEffectUntilDone(sounds.communicationNo)
             Claw(true, 75, true)
             chassis.spinTurn(5, 50)
+            pause(50)
             chassis.linearDistMove(150, 50, Braking.Hold)
         }
     }
     pause(50)
     chassis.linearDistMove(20, -60, Braking.Hold)
+    pause(50)
     chassis.spinTurn(-90, 80)
+    pause(25)
     motions.moveToRefZone(0, 50, LineSensorSelection.LeftAndRight, Comparison.Less, 20, AfterMotion.BreakStop)
+    pause(50)
     levelings.lineAlignment(VerticalLineLocation.Behind, 750, false, params.lineAlignmentSevenParams(50, 1.1, 1.1, 0, 0, 0, 0))
+    pause(50)
     chassis.linearDistMove(30, 50, Braking.Hold)
     pause(50)
     chassis.spinTurn(90, 60)
+    pause(50)
     motions.rampLineFollowToDistance(900 - 150 * (setellite_zone - 1), 150, 0, Braking.NoStop, params.rampLineFollowSixParams(30, 70, 50, 0.45, 0.5))
     motions.lineFollowToSideIntersection(SideIntersection.LeftInside, AfterMotion.DecelRolling, params.lineFollowTwoParams(50, 0.8))
     pause(50)
@@ -144,7 +155,7 @@ function MoveSatellite () {
         cross = 4
     }
     if (false) {
-        motions.lineFollowToDistance(40, AfterMotion.NoStop, params.lineFollowTwoParams(30, 0.6))
+        motions.lineFollowToDistance(40, AfterMotion.NoStop, params.lineFollowTwoParams(40, 0.6))
     }
     for (let index2 = 0; index2 <= cross; index2++) {
         if (index2 != cross) {
@@ -167,17 +178,18 @@ brick.buttonLeft.onEvent(ButtonEvent.Pressed, function () {
 function CheckSetelliteColor () {
     result_color = -1
     color_samples = [-1]
+    color_check_time = 100
     control.timer1.reset()
     control.runInParallel(function () {
         music.playSoundEffect(sounds.informationAnalyze)
-        while (control.timer1.millis() < 1000) {
-            color_samples.push(CheckColor(true))
+        while (control.timer1.millis() < color_check_time) {
+            color_samples.push(GetColor(true))
             pause(10)
         }
     })
     pause(10)
     ShakeSatellite()
-    pauseUntil(() => control.timer1.millis() > 1010)
+    pauseUntil(() => control.timer1.millis() >= color_check_time + 10)
     result_color = custom.mostFrequentNumber(color_samples)
     if (result_color == ColorSensorColor.Black) {
         result_color = ColorSensorColor.White
@@ -185,7 +197,6 @@ function CheckSetelliteColor () {
     if (result_color == ColorSensorColor.Brown) {
         result_color = ColorSensorColor.Yellow
     }
-    brick.printValue("result_color", result_color, 11)
     return result_color
 }
 // Вспомогательная функция, с помощью которой робот трясёт спутник, чтобы правильно прочитать значение цвета
@@ -225,6 +236,7 @@ function VoiceSatelliteColor (color: number) {
 // Часть 4 - отвезти последний красный кубик0
 function MoveLastRedSpaceGarbage () {
     chassis.spinTurn(-90, 70)
+    pause(25)
     for (let index3 = 0; index3 <= 4 - cross - 1; index3++) {
         if (index3 == 4) {
             motions.lineFollowToSideIntersection(SideIntersection.RightInside, AfterMotion.BreakStop, params.lineFollowFourParams(50, 0.7, 0))
@@ -232,6 +244,7 @@ function MoveLastRedSpaceGarbage () {
             motions.lineFollowToSideIntersection(SideIntersection.RightInside, AfterMotion.RollingNoStop, params.lineFollowFourParams(50, 0.7, 0))
         }
     }
+    pause(25)
     chassis.linearDistMove(80, 60, Braking.Hold)
     pause(50)
     chassis.spinTurn(-90, 50)
@@ -264,6 +277,7 @@ function MoveLastRedSpaceGarbage () {
     pause(50)
     chassis.spinTurn(180, 60)
 }
+let color_check_time = 0
 let color_samples: number[] = []
 let result_color = 0
 let cross = 0
@@ -282,6 +296,15 @@ sensors.setNxtLightSensorsAsLineSensors(sensors.nxtLight1, sensors.nxtLight4)
 sensors.setLineSensorsRawRefValues(2272, 1660, 2504, 1950)
 sensors.setColorSensorMinRgbValues(sensors.color3, 3, 3, 3)
 sensors.setColorSensorMaxRgbValues(sensors.color3, 98, 87, 95)
+//      * Значения перевода HSVL в цветовые коды.
+//      * значение границы цветности S, если значение S выше, тогда объект будет считаться цветным иначе чёрно-белым (или что ничего нет), eg: 50
+//      * значение границы белого V, если значение V ≥ этому, тогда объект будет считаться белым, eg: 10
+//      * значение границы чёрного V, если значение ≥ этому числу, но меньше белого числа, тогда будет считаться чёрным цветом, а всё что ниже этого будет считаться, что цвета нет, eg: 1
+//      * значение границы красного H, от 0 до этого значения, eg: 25
+//      * значение границы коричневого H, от красного до этого значения, eg: 40
+//      * значение границы жёлтого H, от коричневого до этого значения, eg: 100
+//      * значение границы зелёного H, от жёлтого до этого значения, eg: 180
+//      * значение границы синего H, от зелёного до этого значения, а после до 360 (включительно) снова идёт красный, eg: 260
 sensors.setHsvlToColorNumParams(sensors.color3, sensors.hsvlToColorNumParams(
 50,
 4,
@@ -316,11 +339,12 @@ brick.buttonEnter.pauseUntil(ButtonEvent.Bumped)
 brick.setStatusLight(StatusLight.Off)
 if (false) {
     while (true) {
-        CheckColor(true)
+        GetColor(true)
         pause(10)
     }
 }
 if (true) {
+    pause(100)
     TransferBattery()
 }
 if (true) {
