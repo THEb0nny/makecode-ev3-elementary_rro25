@@ -41,8 +41,173 @@ function hgfjfmjbdnj () {
     chassis.linearDistMove(30, 50, Braking.Hold)
     chassis.spinTurn(90, 70)
 }
+// Перемещение двух первых красных космических мусоров
+function MoveTwoRedGarbageCubes () {
+    chassis.setBrakeSettleTime(75)
+    chassis.rampLinearDistMove(30, 60, 10, 55, 20, 20)
+    chassis.pivotTurn(80, 70, WheelPivot.LeftWheel)
+    DownClawAfterDelayInParallel(1000, 35)
+    chassis.rampLinearDistMove(30, 90, 10, 425, 75, 50)
+    pause(50)
+    chassis.spinTurn(-90, 80)
+    chassis.steeringCommand(0, -100)
+    pause(500)
+    chassis.stop()
+    UpClawAfterDelayInParallel(200, 50)
+    DownClawAfterDelayInParallel(1000, 35)
+    pause(50)
+    chassis.rampLinearDistMove(30, 90, 10, 420, 75, 50)
+    chassis.pivotTurn(90, 85, WheelPivot.LeftWheel)
+    pause(50)
+    chassis.rampLinearDistMove(30, 80, 10, 100, 70, 30)
+    chassis.pivotTurn(90, 80, WheelPivot.RightWheel)
+    control.runInParallel(function () {
+        pause(800)
+        custom.LinearMotor(LinearMotorPos.Right, 50, MotorBreak.NoHold, 100)
+    })
+    chassis.accelStartLinearDistMove(30, 70, 50)
+    motions.moveToRefZone(0, 70, LineSensorSelection.LeftOrRight, Comparison.GreaterOrEqual, 70, AfterMotion.BreakStop)
+    levelings.lineAlignment(VerticalLineLocation.Front, 750, params.lineAlignmentSevenParams(50, 1.1, 1.1, 0, 0))
+    chassis.linearDistMove(40, 50, Braking.Hold)
+    chassis.spinTurn(90, 80)
+    UpClawAfterDelayInParallel(1500, 50)
+    motions.rampLineFollowToDistance(450, 110, 50, Braking.NoStop, params.rampLineFollowSixParams(30, 90, 70, 0.5, 0.5))
+    motions.lineFollowToCrossIntersection(AfterMotion.NoStop, params.lineFollowFourParams(70, 0.5, 0.5))
+    control.runInParallel(function () {
+        pause(2500)
+        custom.LinearMotor(LinearMotorPos.Left, 50, MotorBreak.NoHold, 100)
+    })
+    chassis.decelFinishLinearDistMove(70, 10, 50, 150)
+    pause(50)
+    chassis.accelStartLinearDistMove(-20, -70, 50)
+    motions.moveToRefZone(0, -70, LineSensorSelection.LeftOrRight, Comparison.LessOrEqual, 40, AfterMotion.BreakStop)
+    pause(50)
+    chassis.rampLinearDistMove(20, 60, 10, 40, 20, 20)
+    pause(50)
+    chassis.spinTurn(-180, 70)
+}
+function MoveSattelite () {
+    chassis.linearDistMove(20, 60, Braking.Hold)
+    chassis.pivotTurn(90, 70, WheelPivot.LeftWheel)
+    motions.lineFollowToCrossIntersection(AfterMotion.DecelRolling, params.lineFollowFourParams(40, 0.6, 0))
+    chassis.spinTurn(90, 70)
+    pause(50)
+    motions.setSteeringAtSearchLineForLineFollowOneSensor(15)
+    motions.rampLineFollowToDistance(900 - 150 * setellite_zone, 150, 50, Braking.NoStop, params.rampLineFollowThreeParams(30, 60, 50))
+    motions.lineFollowToSideIntersection(SideIntersection.LeftInside, AfterMotion.DecelRolling, params.lineFollowFourParams(50, 0.6, 0))
+    chassis.decelFinishLinearDistMove(80, 10, 75, 275)
+    pause(50)
+    chassis.spinTurn(-90, 70)
+    chassis.rampLinearDistMove(30, 90, 10, 310, 75, 50)
+    control.runInParallel(function () {
+        custom.LinearMotor(LinearMotorPos.Left, 60, MotorBreak.NoHold, 100)
+    })
+    if (current_color == ColorSensorColor.White) {
+        need_cross = 0
+    } else if (current_color == ColorSensorColor.Green) {
+        need_cross = 1
+    } else if (current_color == ColorSensorColor.Blue) {
+        need_cross = 2
+    } else if (current_color == ColorSensorColor.Yellow) {
+        need_cross = 3
+    } else if (current_color == ColorSensorColor.Red) {
+        need_cross = 4
+    } else {
+        music.playSoundEffectUntilDone(sounds.systemGeneralAlert)
+        brick.exitProgram()
+    }
+    if (false) {
+        motions.lineFollowToDistance(40, AfterMotion.NoStop, params.lineFollowTwoParams(40, 0.6))
+    }
+    motions.setSteeringAtSearchLineForLineFollowOneSensor(30)
+    for (let index = 0; index <= need_cross; index++) {
+        if (index != need_cross) {
+            motions.lineFollowToSideIntersection(SideIntersection.RightInside, AfterMotion.RollingNoStop, params.lineFollowFourParams(50, 0.7, 0.5))
+        } else {
+            motions.lineFollowToSideIntersection(SideIntersection.RightInside, AfterMotion.DecelRolling, params.lineFollowFourParams(50, 0.7, 0.5))
+        }
+    }
+    control.runInParallel(function () {
+        custom.Claw(ClawState2.Up, 65, MotorBreak.NoHold)
+    })
+    chassis.spinTurn(90, 70)
+    control.runInParallel(function () {
+        motors.mediumA.run(70, -220, MoveUnit.Degrees)
+    })
+    motions.lineFollowToDistance(90, AfterMotion.BreakStop, params.lineFollowFourParams(45, 0.5, 0.5))
+    chassis.spinTurn(12, 50)
+    chassis.spinTurn(-10, 50)
+    chassis.linearDistMove(85, -45, Braking.Hold)
+}
+brick.buttonLeft.onEvent(ButtonEvent.Pressed, function () {
+    sensors.searchRgbMinMax(sensors.color3)
+})
+brick.buttonDown.onEvent(ButtonEvent.Bumped, function () {
+    chassis.spinTurn(90, 70)
+})
+// Вспомогательная функция проверки цвета спутника
+function CheckSetelliteColor () {
+    result_color = -1
+    color_samples = [-1]
+    color_check_time = 100
+    control.timer1.reset()
+    control.runInParallel(function () {
+        while (control.timer1.millis() < color_check_time) {
+            color_samples.push(GetColor(true))
+            pause(10)
+        }
+    })
+    pause(10)
+    ShakeSatellite()
+    pauseUntil(() => control.timer1.millis() >= color_check_time + 10)
+    result_color = custom.mostFrequentNumber(color_samples)
+    if (result_color == ColorSensorColor.Black) {
+        result_color = ColorSensorColor.White
+    }
+    if (result_color == ColorSensorColor.Brown) {
+        result_color = ColorSensorColor.Yellow
+    }
+    return result_color
+}
+function MoveTowardsSatelliteFromBase (satellite_pos: number) {
+    chassis.setBrakeSettleTime(100)
+    motions.rampLineFollowToDistance(100, 60, 40, Braking.Hold, params.rampLineFollowThreeParams(30, 60, 10))
+    chassis.spinTurn(90, 70)
+    chassis.linearDistMove(20, -40, Braking.NoStop)
+    levelings.lineAlignment(VerticalLineLocation.Behind, 750, params.lineAlignmentSevenParams(60, 1.1, 1.1, 0, 0))
+    chassis.rampLinearDistMove(30, 60, 10, 107, 30, 50)
+    chassis.pivotTurn(90, 90, WheelPivot.LeftWheel)
+    if (satellite_pos == 0) {
+        chassis.rampLinearDistMove(30, 60, 10, 45, 20, 20)
+    } else if (satellite_pos == 1) {
+        chassis.rampLinearDistMove(30, 60, 10, 90, 20, 20)
+    } else {
+        music.playSoundEffectUntilDone(sounds.systemGeneralAlert)
+        brick.exitProgram()
+    }
+}
+// Вспомогательная функция, с помощью которой робот трясёт спутник, чтобы правильно прочитать значение цвета
+function ShakeSatellite () {
+    chassis.spinTurn(5, 50, 1000)
+    pause(100)
+    chassis.spinTurn(-10, 50, 1000)
+    pause(100)
+    chassis.spinTurn(5, 50, 1000)
+}
+function CheckSatellitePos (pos: number) {
+    current_color = -1
+    setellite_zone = pos
+    custom.Claw(ClawState2.Down, 60, MotorBreak.NoHold)
+    chassis.linearDistMove(30, -50, Braking.Hold)
+    chassis.linearDistMove(30, 50, Braking.Hold)
+    music.playSoundEffect(sounds.informationAnalyze)
+    pause(50)
+    current_color = CheckSetelliteColor()
+    brick.printValue("current_color", current_color, 11)
+    custom.VoiceSatelliteColor(current_color, VoiceActing.ExpectEnd)
+}
 // Часть 3 - перевести первый спутник
-function MoveSatellite () {
+function MoveSatelliteFromBaseSide () {
     chassis.setBrakeSettleTime(100)
     motions.rampLineFollowToDistance(100, 60, 40, Braking.Hold, params.rampLineFollowThreeParams(30, 60, 10))
     chassis.spinTurn(90, 70)
@@ -123,174 +288,6 @@ function MoveSatellite () {
     chassis.spinTurn(12, 50)
     chassis.spinTurn(-10, 50)
     chassis.linearDistMove(85, -45, Braking.Hold)
-}
-// Перемещение двух первых красных космических мусоров
-function MoveTwoRedGarbageCubes () {
-    chassis.setBrakeSettleTime(75)
-    chassis.rampLinearDistMove(30, 60, 10, 55, 20, 20)
-    chassis.pivotTurn(80, 70, WheelPivot.LeftWheel)
-    DownClawAfterDelayInParallel(1000, 35)
-    chassis.rampLinearDistMove(30, 90, 10, 425, 75, 50)
-    pause(50)
-    chassis.spinTurn(-90, 80)
-    chassis.steeringCommand(0, -100)
-    pause(500)
-    chassis.stop()
-    UpClawAfterDelayInParallel(200, 50)
-    DownClawAfterDelayInParallel(1000, 35)
-    pause(50)
-    chassis.rampLinearDistMove(30, 90, 10, 420, 75, 50)
-    chassis.pivotTurn(90, 85, WheelPivot.LeftWheel)
-    pause(50)
-    chassis.rampLinearDistMove(30, 80, 10, 100, 70, 30)
-    chassis.pivotTurn(90, 80, WheelPivot.RightWheel)
-    control.runInParallel(function () {
-        pause(800)
-        custom.LinearMotor(LinearMotorPos.Right, 50, MotorBreak.NoHold, 100)
-    })
-    chassis.accelStartLinearDistMove(30, 70, 50)
-    motions.moveToRefZone(0, 70, LineSensorSelection.LeftOrRight, Comparison.GreaterOrEqual, 70, AfterMotion.BreakStop)
-    levelings.lineAlignment(VerticalLineLocation.Front, 750, params.lineAlignmentSevenParams(50, 1.1, 1.1, 0, 0))
-    chassis.linearDistMove(40, 50, Braking.Hold)
-    chassis.spinTurn(90, 80)
-    UpClawAfterDelayInParallel(1500, 50)
-    motions.rampLineFollowToDistance(450, 110, 50, Braking.NoStop, params.rampLineFollowSixParams(30, 90, 70, 0.5, 0.5))
-    motions.lineFollowToCrossIntersection(AfterMotion.NoStop, params.lineFollowFourParams(70, 0.5, 0.5))
-    control.runInParallel(function () {
-        pause(2500)
-        custom.LinearMotor(LinearMotorPos.Left, 50, MotorBreak.NoHold, 100)
-    })
-    chassis.decelFinishLinearDistMove(70, 10, 50, 150)
-    pause(50)
-    chassis.accelStartLinearDistMove(-20, -70, 50)
-    motions.moveToRefZone(0, -70, LineSensorSelection.LeftOrRight, Comparison.LessOrEqual, 40, AfterMotion.BreakStop)
-    pause(50)
-    chassis.rampLinearDistMove(20, 60, 10, 40, 20, 20)
-    pause(50)
-    chassis.spinTurn(-180, 70)
-}
-brick.buttonLeft.onEvent(ButtonEvent.Pressed, function () {
-    sensors.searchRgbMinMax(sensors.color3)
-})
-brick.buttonDown.onEvent(ButtonEvent.Bumped, function () {
-    chassis.spinTurn(90, 50)
-})
-// Часть 3 - перевести первый спутник
-function MoveSatellite5 () {
-    chassis.setBrakeSettleTime(110)
-    motions.rampLineFollowToDistance(100, 60, 40, Braking.Hold, params.rampLineFollowThreeParams(30, 70, 10))
-    chassis.spinTurn(90, 60)
-    pause(50)
-    chassis.linearDistMove(20, -40, Braking.NoStop)
-    levelings.lineAlignment(VerticalLineLocation.Behind, 750, params.lineAlignmentSevenParams(55, 1.1, 1.1, 0, 0))
-    chassis.linearDistMove(40, 40, Braking.NoStop)
-    chassis.linearDistMove(67, 60, Braking.Hold)
-    chassis.pivotTurn(90, 90, WheelPivot.LeftWheel)
-    chassis.linearDistMove(205, 60, Braking.Hold)
-    current_color = -1
-    for (let index4 = 0; index4 <= 4; index4++) {
-        setellite_zone = index4 + 1
-        custom.Claw(ClawState2.Down, 60, MotorBreak.NoHold, 100)
-        chassis.linearDistMove(30, -50, Braking.Hold)
-        pause(50)
-        music.playSoundEffect(sounds.informationAnalyze)
-        chassis.linearDistMove(30, 50, Braking.Hold)
-        pause(50)
-        current_color = CheckSetelliteColor()
-        brick.printValue("current_color", current_color, 11)
-        if (current_color != 0) {
-            custom.VoiceSatelliteColor(current_color, VoiceActing.ExpectEnd)
-            break;
-        } else {
-            music.playSoundEffectUntilDone(sounds.communicationNo)
-            custom.Claw(ClawState2.Up, 60, MotorBreak.NoHold, 100)
-            pause(50)
-            chassis.spinTurn(4, 50)
-            chassis.linearDistMove(158, 50, Braking.Hold)
-        }
-    }
-    chassis.linearDistMove(20, 60, Braking.Hold)
-    chassis.pivotTurn(90, 60, WheelPivot.LeftWheel)
-    motions.lineFollowToCrossIntersection(AfterMotion.DecelRolling)
-    chassis.spinTurn(90, 60)
-    if (false) {
-        chassis.linearDistMove(150, 65, Braking.Hold)
-    }
-    motions.rampLineFollowToDistance(900 - 150 * (setellite_zone - 1), 150, 0, Braking.NoStop, params.rampLineFollowThreeParams(30, 70, 50))
-    motions.lineFollowToSideIntersection(SideIntersection.LeftInside, AfterMotion.DecelRolling, params.lineFollowFourParams(65, 0.6, 0))
-    pause(50)
-    motions.setSteeringAtSearchLineForLineFollowOneSensor(15)
-    motions.lineFollowToSideIntersection(SideIntersection.LeftInside, AfterMotion.DecelRolling, params.lineFollowFourParams(55, 0.6, 0))
-    chassis.spinTurn(-90, 60)
-    motions.lineFollowToCrossIntersection(AfterMotion.NoStop, params.lineFollowFourParams(70, 0.5, 0))
-    chassis.decelFinishLinearDistMove(70, 50, 130, 280)
-    chassis.spinTurn(-90, 60)
-    chassis.rampLinearDistMove(30, 80, 10, 310, 75, 100)
-    control.runInParallel(function () {
-        custom.LinearMotor(LinearMotorPos.Left, 60, MotorBreak.NoHold, 100)
-    })
-    if (current_color == 6) {
-        need_cross = 0
-    } else if (current_color == 3) {
-        need_cross = 1
-    } else if (current_color == 2) {
-        need_cross = 2
-    } else if (current_color == 4) {
-        need_cross = 3
-    } else if (current_color == 5) {
-        need_cross = 4
-    }
-    if (false) {
-        motions.lineFollowToDistance(40, AfterMotion.NoStop, params.lineFollowTwoParams(40, 0.6))
-    }
-    motions.setSteeringAtSearchLineForLineFollowOneSensor(30)
-    for (let index23 = 0; index23 <= need_cross; index23++) {
-        if (index23 != need_cross) {
-            motions.lineFollowToSideIntersection(SideIntersection.RightInside, AfterMotion.RollingNoStop, params.lineFollowTwoParams(50, 0.7))
-        } else {
-            motions.lineFollowToSideIntersection(SideIntersection.RightInside, AfterMotion.DecelRolling, params.lineFollowTwoParams(50, 0.7))
-        }
-    }
-    control.runInParallel(function () {
-        custom.Claw(ClawState2.Up, 65, MotorBreak.NoHold, 100)
-    })
-    chassis.spinTurn(90, 70)
-    motions.lineFollowToDistance(90, AfterMotion.BreakStop, params.lineFollowFourParams(45, 0.5, 0.5))
-    chassis.spinTurn(12, 50)
-    chassis.spinTurn(-10, 50)
-    chassis.linearDistMove(85, -45, Braking.Hold)
-}
-// Вспомогательная функция проверки цвета спутника
-function CheckSetelliteColor () {
-    result_color = -1
-    color_samples = [-1]
-    color_check_time = 100
-    control.timer1.reset()
-    control.runInParallel(function () {
-        while (control.timer1.millis() < color_check_time) {
-            color_samples.push(GetColor(true))
-            pause(10)
-        }
-    })
-    pause(10)
-    ShakeSatellite()
-    pauseUntil(() => control.timer1.millis() >= color_check_time + 10)
-    result_color = custom.mostFrequentNumber(color_samples)
-    if (result_color == ColorSensorColor.Black) {
-        result_color = ColorSensorColor.White
-    }
-    if (result_color == ColorSensorColor.Brown) {
-        result_color = ColorSensorColor.Yellow
-    }
-    return result_color
-}
-// Вспомогательная функция, с помощью которой робот трясёт спутник, чтобы правильно прочитать значение цвета
-function ShakeSatellite () {
-    chassis.spinTurn(5, 50, 1000)
-    pause(100)
-    chassis.spinTurn(-10, 50, 1000)
-    pause(100)
-    chassis.spinTurn(5, 50, 1000)
 }
 // Отпустить захват после задержки в параллельной задаче
 function DownClawAfterDelayInParallel (delay: number, speed: number) {
@@ -407,11 +404,11 @@ let color_check_time = 0
 let color_samples: number[] = []
 let result_color = 0
 let setellite_zone = 0
-let current_color = 0
 let need_cross = 0
 let color = 0
 let hsvl: number[] = []
 let rgb: number[] = []
+let current_color = 0
 brick.showImage(images.expressionsSwearing)
 chassis.setChassisMotors(motors.mediumB, motors.mediumC, true, false)
 chassis.setSyncRegulatorGains(0.02, 0.001, 0.5)
@@ -451,8 +448,9 @@ motions.setLineFollowConditionMaxErr(60)
 motions.setLineFollowLoopDt(1)
 levelings.setLineAlignmentOrPositioningLoopDt(1)
 motions.setSteeringAtSearchLineForLineFollowOneSensor(55)
+motors.mediumA.setInverted(false)
 motors.mediumD.setInverted(false)
-custom.Claw(ClawState2.Up, 50, MotorBreak.NoHold, 100)
+custom.Claw(ClawState2.Up, 50, MotorBreak.NoHold)
 sensors.color3.pauseUntilColorDetected(ColorSensorColor.None)
 brick.printValue("V", brick.batteryInfo(BatteryProperty.Voltage), 1)
 // Индикатор начала проги
@@ -482,7 +480,21 @@ if (true) {
 }
 if (true) {
     pause(100)
-    MoveSatellite()
+    if (true) {
+        MoveSatelliteFromBaseSide()
+    } else {
+        if (true) {
+            MoveTowardsSatelliteFromBase(0)
+            CheckSatellitePos(0)
+            if (current_color != 0) {
+                MoveSattelite()
+            } else {
+                custom.Claw(ClawState2.Up, 60, MotorBreak.Hold)
+                chassis.spinTurn(4, 50, 500)
+                chassis.linearDistMove(158, 50, Braking.Hold)
+            }
+        }
+    }
 }
 if (true) {
     pause(100)
