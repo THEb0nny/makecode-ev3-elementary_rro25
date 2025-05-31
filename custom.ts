@@ -1,38 +1,107 @@
-
-/**
-* Используйте этот файл для определения пользовательских функций и блоков.
-* Подробнее на https://makecode.mindstorms.com/blocks/custom
-*/
-
-enum MyEnum {
-    //% block="one"
-    One,
-    //% block="two"
-    Two
+const enum LinearMotorPos {
+    //% block="left"
+    //% block.loc.ru="влево"
+    Left,
+    //% block="right"
+    //% block.loc.ru="вправо"
+    Right
 }
 
-/**
- * Custom blocks
- */
-//% weight=100 color=#0fbc11 icon=""
+const enum MotorBreak {
+    //% block="hold"
+    //% block.loc.ru="удерживать"
+    Hold,
+    //% block="no hold"
+    //% block.loc.ru="не удерживать"
+    NoHold
+}
+
+const enum VoiceActing {
+    //% block="expect end"
+    //% block.loc.ru="ожидать конца"
+    ExpectEnd,
+    //% block="in parallel task"
+    //% block.loc.ru="в параллельной задаче"
+    InParallel
+}
+
 namespace custom {
+
     /**
-     * TODO: describe your function here
-     * @param n describe parameter here, eg: 5
-     * @param s describe parameter here, eg: "Hello"
-     * @param e describe parameter here
+     * Функция/блок захвата.
+     * @param state позиция, eg: ClawState.Open
+     * @param speed скорость, eg: 50
+     * @param breakState стостояние удержание после завершения, eg: MotorBreak.NoHold
+     * @param timeToLaunch время, которое даётся для запуска мотора в мсек, eg: 100
      */
-    //% block
-    export function foo(n: number, s: string, e: MyEnum): void {
-        // Add code here
+    //% blockId="ClawMotor"
+    //% block="claw $state at $speed\\%|$breakState||time to launch $breakState"
+    //% block.loc.ru="захват $state на $speed\\%|$breakState||время для запуска $timeToLaunch"
+    //% inlineInputMode="inline"
+    //% expandableArgumentMode="enabled"
+    //% weight="89"
+    //% group="Захват"
+    export function Claw(state: ClawState, speed: number, breakState: MotorBreak, timeToLaunch: number = 100) {
+        motors.mediumD.setBrake(breakState == MotorBreak.Hold ? true : false);
+        if (state == ClawState.Open) motors.mediumD.run(speed);
+        else if (state == ClawState.Close) motors.mediumD.run(-speed);
+        else return;
+        pause(timeToLaunch);
+        motors.mediumD.pauseUntilStalled();
+        motors.mediumD.stop();
     }
 
     /**
-     * TODO: describe your function here
-     * @param value describe value here, eg: 5
+     * Функция/блок мотора линейного перемещения.
+     * @param pos позиция, eg: LinearMotorPos.Left
+     * @param speed скорость, eg: 50
+     * @param breakState стостояние удержание после завершения, eg: MotorBreak.NoHold
+     * @param timeToLaunch время, которое даётся для запуска мотора в мсек, eg: 100
      */
-    //% block
-    export function fib(value: number): number {
-        return value <= 1 ? value : fib(value -1) + fib(value - 2);
+    //% blockId="LinearMotor"
+    //% block="linear motion motor $pos at $speed\\%|$breakState||time to launch $breakState"
+    //% block.loc.ru="мотор линейного перемещения $pos на $speed\\%|$breakState||время для запуска $timeToLaunch"
+    //% inlineInputMode="inline"
+    //% expandableArgumentMode="enabled"
+    //% weight="88"
+    //% group="Мотор линейного перемещения"
+    export function LinearMotor(pos: LinearMotorPos, speed: number, breakState: MotorBreak, timeToLaunch: number = 100) {
+        motors.mediumA.setBrake(breakState == MotorBreak.Hold ? true : false);
+        if (pos == LinearMotorPos.Left) motors.mediumA.run(speed);
+        else if (pos == LinearMotorPos.Right) motors.mediumA.run(-speed);
+        else return;
+        pause(timeToLaunch);
+        motors.mediumA.pauseUntilStalled();
+        motors.mediumA.stop();
     }
+
+    /**
+     * Функция озвучивания цвета спутника.
+     * @param color код цвета, eg: 6
+     * @param voiceActing вариант озвучивания, eg: VoiceActing.ExpectEnd
+     */
+    //% blockId="VoiceSatelliteColor"
+    //% block="voice color $color satellite $voiceActing"
+    //% block.loc.ru="озвучить цвет $color спутника $voiceActing"
+    //% inlineInputMode="inline"
+    //% weight="79"
+    //% group="Озвучивание"
+    export function VoiceSatelliteColor(color: number, voiceActing: VoiceActing) {
+        if (voiceActing == VoiceActing.ExpectEnd) {
+            if (color == ColorSensorColor.Blue) music.playSoundEffectUntilDone(sounds.colorsBlue);
+            else if (color == ColorSensorColor.Green) music.playSoundEffectUntilDone(sounds.colorsGreen);
+            else if (color == ColorSensorColor.Yellow) music.playSoundEffectUntilDone(sounds.colorsYellow);
+            else if (color == ColorSensorColor.Red) music.playSoundEffectUntilDone(sounds.colorsRed);
+            else if (color == ColorSensorColor.White) music.playSoundEffectUntilDone(sounds.colorsWhite);
+            else if (color == ColorSensorColor.Black) music.playSoundEffectUntilDone(sounds.colorsBlack);
+        } else if (voiceActing == VoiceActing.InParallel) {
+            if (color == ColorSensorColor.Blue) music.playSoundEffect(sounds.colorsBlue);
+            else if (color == ColorSensorColor.Green) music.playSoundEffect(sounds.colorsGreen);
+            else if (color == ColorSensorColor.Yellow) music.playSoundEffect(sounds.colorsYellow);
+            else if (color == ColorSensorColor.Red) music.playSoundEffect(sounds.colorsRed);
+            else if (color == ColorSensorColor.White) music.playSoundEffect(sounds.colorsWhite);
+            else if (color == ColorSensorColor.Black) music.playSoundEffect(sounds.colorsBlack);
+        }
+    }
+
 }
