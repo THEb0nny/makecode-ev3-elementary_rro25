@@ -1,3 +1,12 @@
+const enum ClawState2 {
+    //% block="up"
+    //% block.loc.ru="поднять"
+    Up,
+    //% block="down"
+    //% block.loc.ru="опустить"
+    Down
+}
+
 const enum LinearMotorPos {
     //% block="left"
     //% block.loc.ru="влево"
@@ -29,22 +38,22 @@ namespace custom {
 
     /**
      * Функция/блок захвата.
-     * @param state позиция, eg: ClawState.Open
+     * @param state позиция, eg: ClawState2.Up
      * @param speed скорость, eg: 50
      * @param breakState стостояние удержание после завершения, eg: MotorBreak.NoHold
      * @param timeToLaunch время, которое даётся для запуска мотора в мсек, eg: 100
      */
     //% blockId="ClawMotor"
-    //% block="claw $state at $speed\\%|$breakState||time to launch $breakState"
+    //% block="claw $state at $speed\\%|$breakState||time to launch $timeToLaunch"
     //% block.loc.ru="захват $state на $speed\\%|$breakState||время для запуска $timeToLaunch"
     //% inlineInputMode="inline"
     //% expandableArgumentMode="enabled"
     //% weight="89"
     //% group="Захват"
-    export function Claw(state: ClawState, speed: number, breakState: MotorBreak, timeToLaunch: number = 100) {
+    export function Claw(state: ClawState2, speed: number, breakState: MotorBreak, timeToLaunch: number = 100) {
         motors.mediumD.setBrake(breakState == MotorBreak.Hold ? true : false);
-        if (state == ClawState.Open) motors.mediumD.run(speed);
-        else if (state == ClawState.Close) motors.mediumD.run(-speed);
+        if (state == ClawState2.Up) motors.mediumD.run(speed);
+        else if (state == ClawState2.Down) motors.mediumD.run(-speed);
         else return;
         pause(timeToLaunch);
         motors.mediumD.pauseUntilStalled();
@@ -59,7 +68,7 @@ namespace custom {
      * @param timeToLaunch время, которое даётся для запуска мотора в мсек, eg: 100
      */
     //% blockId="LinearMotor"
-    //% block="linear motion motor $pos at $speed\\%|$breakState||time to launch $breakState"
+    //% block="linear motion motor $pos at $speed\\%|$breakState||time to launch $timeToLaunch"
     //% block.loc.ru="мотор линейного перемещения $pos на $speed\\%|$breakState||время для запуска $timeToLaunch"
     //% inlineInputMode="inline"
     //% expandableArgumentMode="enabled"
@@ -94,6 +103,7 @@ namespace custom {
             else if (color == ColorSensorColor.Red) music.playSoundEffectUntilDone(sounds.colorsRed);
             else if (color == ColorSensorColor.White) music.playSoundEffectUntilDone(sounds.colorsWhite);
             else if (color == ColorSensorColor.Black) music.playSoundEffectUntilDone(sounds.colorsBlack);
+            else music.playSoundEffectUntilDone(sounds.communicationNo);
         } else if (voiceActing == VoiceActing.InParallel) {
             if (color == ColorSensorColor.Blue) music.playSoundEffect(sounds.colorsBlue);
             else if (color == ColorSensorColor.Green) music.playSoundEffect(sounds.colorsGreen);
@@ -101,6 +111,7 @@ namespace custom {
             else if (color == ColorSensorColor.Red) music.playSoundEffect(sounds.colorsRed);
             else if (color == ColorSensorColor.White) music.playSoundEffect(sounds.colorsWhite);
             else if (color == ColorSensorColor.Black) music.playSoundEffect(sounds.colorsBlack);
+            else music.playSoundEffect(sounds.communicationNo);
         }
     }
 

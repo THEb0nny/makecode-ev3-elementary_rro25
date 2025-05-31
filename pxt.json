@@ -26,5 +26,5 @@
     "supportedTargets": [
         "ev3"
     ],
-    "preferredEditor": "tsprj"
+    "preferredEditor": "blocksprj"
 }
